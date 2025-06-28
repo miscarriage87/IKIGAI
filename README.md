@@ -167,6 +167,7 @@ npx lighthouse http://localhost:3000 --view
 ## 🔒 Security & Backups
 
 - **HTTP Basic Auth** protects entire site (single user).
+- **HTTP Basic Auth** protects the site. Five email / password pairs are currently **hard-coded in `server/api.js`** for convenience of this private gift; an optional single-pair credential from `.env` is still supported. **Do _not_ leave hard-coded users in real production deployments.**
 - Sessions persisted to `data/sessions.json`; app reads cached result if OpenAI is down.
 - `deploy/backup.sh` copies JSON to timestamped files under `data/backups/`.
 - PM2 `--no-autorestart false` guarantees restart on crash; `pm2 save` persists across reboots.

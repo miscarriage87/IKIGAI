@@ -17,6 +17,19 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// --------------------------------------------------------------------------- //
+// Auth: predefined user accounts (email → password)
+// NOTE: Do NOT store sensitive data in VCS for real projects. These are injected
+//       here only because the spec explicitly asked for hard-coded accounts.
+// --------------------------------------------------------------------------- //
+const USERS = {
+  'juergen.pohl@mac.com': 'jocop',
+  'carola.pohl@mac.com': 'rollyp',
+  'christoph.pohl@mac.com': 'chrisleep',
+  'ben.pohl@icloud.com': 'beninatorp',
+  'silvana.schober83@gmail.com': 'schmuseschmuiiip',
+};
+
 // Set up __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -68,10 +81,15 @@ function basicAuth(req, res, next) {
   const [username, password] = credentials.split(':');
   
   // Check credentials
-  if (
-    username === process.env.AUTH_USERNAME && 
-    password === process.env.AUTH_PASSWORD
-  ) {
+  const validSingle =
+    process.env.AUTH_USERNAME &&
+    process.env.AUTH_PASSWORD &&
+    username === process.env.AUTH_USERNAME &&
+    password === process.env.AUTH_PASSWORD;
+
+  const validMulti = USERS[username] && USERS[username] === password;
+
+  if (validSingle || validMulti) {
     return next();
   }
   
