@@ -1,0 +1,36 @@
+{
+  "name": "ikigai-x-one",
+  "version": "1.0.0",
+  "description": "Private, visually stunning, single-user Ikigai discovery web application",
+  "main": "server/api.js",
+  "scripts": {
+    "dev": "nodemon --watch server server/api.js",
+    "start": "node server/api.js",
+    "lint": "eslint . --ext .js,.cjs,.mjs --fix",
+    "test": "echo \"No tests yet\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miscarriage87/IKIGAI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/miscarriage87/IKIGAI/issues"
+  },
+  "homepage": "https://github.com/miscarriage87/IKIGAI#readme",
+  "dependencies": {
+    "compression": "^1.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.0",
+    "express": "^4.21.2",
+    "helmet": "^8.1.0",
+    "openai": "^5.8.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "nodemon": "^3.1.10"
+  }
+}

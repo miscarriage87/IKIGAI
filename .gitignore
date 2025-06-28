@@ -1,0 +1,78 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+.pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+# Keep example env file
+!.env.example
+
+# Data files
+data/sessions.json
+data/backups/
+data/*.backup
+data/logs/
+
+# Build & distribution
+dist/
+build/
+.vercel/
+.netlify/
+.output/
+.serverless/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Editor/IDE specific
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.temp/
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Misc
+.git/
+*.tgz
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IKIGAI X-ONE | Entdecke deinen Lebenssinn</title>
+  <meta name="description" content="Eine persönliche Reise zur Entdeckung deines Ikigai - dem Schnittpunkt von Leidenschaft, Mission, Beruf und Berufung.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+  
+  <!-- Tailwind CSS from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+  
+  <!-- Three.js for 3D visualization -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <!-- GSAP for animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  
+  <style>
+    /* Custom styles beyond Tailwind */
+    @font-face {
+      font-family: 'Montserrat';
+      src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+    
+    :root {
+      --aurora-blue: #0a2463;
+      --aurora-purple: #3e92cc;
+      --aurora-green: #2dc7ff;
+      --aurora-pink: #d8315b;
+      --aurora-dark: #1e1b18;
+    }
+    
+    body {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      background-color: var(--aurora-dark);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    
+    .aurora-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: linear-gradient(125deg, var(--aurora-dark) 0%, var(--aurora-blue) 40%, var(--aurora-purple) 60%, var(--aurora-dark) 100%);
+      opacity: 0.8;
+    }
+    
+    .aurora-bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 50%, var(--aurora-green) 0%, transparent 40%);
+      opacity: 0.2;
+      animation: aurora-pulse 15s ease-in-out infinite alternate;
+    }
+    
+    .aurora-bg::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 70% 30%, var(--aurora-pink) 0%, transparent 50%);
+      opacity: 0.15;
+      animation: aurora-float 20s ease-in-out infinite alternate-reverse;
+    }
+    
+    @keyframes aurora-pulse {
+      0% { transform: scale(1.0); opacity: 0.2; }
+      50% { transform: scale(1.2); opacity: 0.3; }
+      100% { transform: scale(1.0); opacity: 0.2; }
+    }
+    
+    @keyframes aurora-float {
+      0% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(-20px) translateX(20px); }
+      100% { transform: translateY(0) translateX(0); }
+    }
+    
+    /* Ikigai sphere container */
+    #ikigai-sphere {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.8;
+      pointer-events: none;
+    }
+    
+    /* Question card styling */
+    .question-card {
+      background: rgba(14, 20, 44, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .question-card:hover {
+      box-shadow: 0 12px 40px rgba(62, 146, 204, 0.4);
+      transform: translateY(-5px);
+    }
+    
+    /* Input styling */
+    .ikigai-input {
+      background: rgba(30, 27, 24, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .ikigai-input:focus {
+      border-color: var(--aurora-green);
+      box-shadow: 0 0 0 2px rgba(45, 199, 255, 0.3);
+      background: rgba(30, 27, 24, 0.7);
+    }
+    
+    /* Button styling */
+    .ikigai-button {
+      background: linear-gradient(135deg, var(--aurora-purple) 0%, var(--aurora-blue) 100%);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .ikigai-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+      transition: all 0.5s ease;
+    }
+    
+    .ikigai-button:hover::before {
+      left: 100%;
+    }
+    
+    .ikigai-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(45, 199, 255, 0.4);
+    }
+    
+    /* Results section styling */
+    .result-container {
+      background: rgba(14, 20, 44, 0.8);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Particle effect for "IKIGAI FOUND" text */
+    .particle-text {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: var(--aurora-green);
+      opacity: 0;
+    }
+    
+    /* Progress bar styling */
+    .progress-bar {
+      height: 4px;
+      background: linear-gradient(90deg, var(--aurora-purple) 0%, var(--aurora-green) 100%);
+      transition: width 0.3s ease;
+    }
+    
+    /* Loading animation */
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--aurora-green);
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(30, 27, 24, 0.5);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--aurora-purple);
+      border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--aurora-green);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .question-card {
+        width: 92%;
+        margin: 0 auto;
+      }
+      
+      #ikigai-sphere {
+        opacity: 0.5;
+      }
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen flex flex-col">
+  <!-- Aurora Background -->
+  <div class="aurora-bg"></div>
+  
+  <!-- 3D Ikigai Sphere Container -->
+  <div id="ikigai-sphere"></div>
+  
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-8 flex-grow flex flex-col items-center justify-center z-10 relative">
+    
+    <!-- Header -->
+    <header class="w-full text-center mb-8">
+      <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+        IKIGAI X-ONE
+      </h1>
+      <p class="text-lg md:text-xl text-blue-200 opacity-90 max-w-2xl mx-auto">
+        Entdecke den Schnittpunkt deiner Leidenschaft, Mission, Berufung und Profession
+      </p>
+    </header>
+    
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="question-card w-full max-w-2xl p-8 rounded-xl text-center">
+      <h2 class="text-2xl md:text-3xl font-bold mb-6">Willkommen zu deiner Ikigai-Reise</h2>
+      <p class="mb-8 text-blue-200">
+        Ikigai (生き甲斐) ist ein japanisches Konzept, das sich auf den Grund deines Seins bezieht - 
+        den Grund, warum du jeden Morgen aufstehst. Beantworte die folgenden Fragen, um dein persönliches 
+        Ikigai zu entdecken.
+      </p>
+      <button id="start-button" class="ikigai-button px-8 py-3 rounded-full text-white font-bold text-lg shadow-lg">
+        Reise beginnen
+      </button>
+    </div>
+    
+    <!-- Questionnaire -->
+    <div id="questionnaire" class="question-card w-full max-w-2xl p-8 rounded-xl hidden">
+      <!-- Progress Bar -->
+      <div class="w-full h-1 bg-gray-800 rounded-full mb-6 overflow-hidden">
+        <div id="progress-bar" class="progress-bar h-full w-0"></div>
+      </div>
+      
+      <!-- Question Counter -->
+      <div class="flex justify-between items-center mb-6">
+        <span id="question-counter" class="text-sm text-blue-300">Frage 1 von 10</span>
+        <span id="question-category" class="text-sm px-3 py-1 rounded-full bg-blue-900 text-blue-200">Leidenschaft</span>
+      </div>
+      
+      <!-- Question Text -->
+      <h3 id="question-text" class="text-xl md:text-2xl font-semibold mb-6">
+        Was erfüllt dich mit Freude und lässt dich die Zeit vergessen?
+      </h3>
+      
+      <!-- Answer Input -->
+      <div class="mb-6">
+        <textarea id="answer-input" class="ikigai-input w-full p-4 rounded-lg text-white resize-none h-32 focus:outline-none" placeholder="Reflektiere und teile deine Gedanken..."></textarea>
+      </div>
+      
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between">
+        <button id="prev-button" class="ikigai-button px-5 py-2 rounded-full text-white font-medium opacity-50 cursor-not-allowed">
+          Zurück
+        </button>
+        <button id="next-button" class="ikigai-button px-5 py-2 rounded-full text-white font-medium">
+          Weiter
+        </button>
+      </div>
+    </div>
+    
+    <!-- Processing Screen -->
+    <div id="processing-screen" class="question-card w-full max-w-2xl p-8 rounded-xl text-center hidden">
+      <h2 class="text-2xl font-bold mb-6">Dein Ikigai wird entdeckt...</h2>
+      <div class="flex justify-center mb-8">
+        <div class="loading-spinner"></div>
+      </div>
+      <p id="processing-status" class="text-blue-200">Analysiere deine Antworten...</p>
+      
+      <!-- Processing Progress Bar -->
+      <div class="w-full h-2 bg-gray-800 rounded-full mt-6 overflow-hidden">
+        <div id="processing-progress" class="progress-bar h-full w-0"></div>
+      </div>
+    </div>
+    
+    <!-- Results Screen -->
+    <div id="results-screen" class="w-full max-w-4xl hidden">
+      <!-- Ikigai Found Header -->
+      <div class="text-center mb-12">
+        <h2 id="ikigai-found" class="text-3xl md:text-5xl font-bold mb-4 opacity-0">
+          IKIGAI GEFUNDEN
+        </h2>
+        <div class="h-1 w-32 bg-gradient-to-r from-blue-400 to-purple-500 mx-auto rounded-full"></div>
+      </div>
+      
+      <!-- Results Content -->
+      <div class="result-container p-8 md:p-12 rounded-2xl">
+        <!-- Ikigai Statement -->
+        <div class="mb-10">
+          <h3 class="text-xl text-blue-300 mb-3">Dein persönliches Ikigai</h3>
+          <p id="ikigai-statement" class="text-2xl md:text-3xl font-medium leading-relaxed"></p>
+        </div>
+        
+        <!-- Weekly Actions -->
+        <div class="mb-10">
+          <h3 class="text-xl text-blue-300 mb-4">Deine wöchentlichen Gewohnheiten</h3>
+          <ul id="ikigai-actions" class="space-y-4">
+            <!-- Actions will be inserted here -->
+          </ul>
+        </div>
+        
+        <!-- Ikigai Visualization -->
+        <div class="mb-8">
+          <h3 class="text-xl text-blue-300 mb-4">Deine Ikigai-Visualisierung</h3>
+          <div class="relative rounded-xl overflow-hidden shadow-2xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
+            <img id="ikigai-image" src="" alt="Deine Ikigai-Visualisierung" class="w-full h-auto rounded-xl transform transition-transform duration-700 hover:scale-105">
+          </div>
+        </div>
+        
+        <!-- Save/Share Options -->
+        <div class="flex flex-wrap justify-center gap-4 mt-10">
+          <button id="save-button" class="ikigai-button px-6 py-3 rounded-full text-white font-medium">
+            Als Bild speichern
+          </button>
+          <button id="restart-button" class="px-6 py-3 rounded-full text-white font-medium border border-blue-400 hover:bg-blue-900 transition-colors">
+            Neue Reise beginnen
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="w-full py-6 text-center text-blue-300 text-sm z-10">
+    <p>IKIGAI X-ONE &copy; 2025 | Erschaffe deinen Lebenssinn</p>
+  </footer>
+  
+  <!-- Application Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM Elements
+      const welcomeScreen = document.getElementById('welcome-screen');
+      const questionnaire = document.getElementById('questionnaire');
+      const processingScreen = document.getElementById('processing-screen');
+      const resultsScreen = document.getElementById('results-screen');
+      
+      const startButton = document.getElementById('start-button');
+      const prevButton = document.getElementById('prev-button');
+      const nextButton = document.getElementById('next-button');
+      
+      const questionCounter = document.getElementById('question-counter');
+      const questionCategory = document.getElementById('question-category');
+      const questionText = document.getElementById('question-text');
+      const answerInput = document.getElementById('answer-input');
+      const progressBar = document.getElementById('progress-bar');
+      
+      const processingStatus = document.getElementById('processing-status');
+      const processingProgress = document.getElementById('processing-progress');
+      
+      const ikigaiFound = document.getElementById('ikigai-found');
+      const ikigaiStatement = document.getElementById('ikigai-statement');
+      const ikigaiActions = document.getElementById('ikigai-actions');
+      const ikigaiImage = document.getElementById('ikigai-image');
+      
+      const saveButton = document.getElementById('save-button');
+      const restartButton = document.getElementById('restart-button');
+      
+      // Application State
+      let currentQuestionIndex = 0;
+      let answers = [];
+      let sessionId = localStorage.getItem('ikigaiSessionId') || Date.now().toString();
+      
+      // Check for existing session
+      const checkExistingSession = async () => {
+        if (localStorage.getItem('ikigaiResult')) {
+          try {
+            const savedResult = JSON.parse(localStorage.getItem('ikigaiResult'));
+            const savedImage = localStorage.getItem('ikigaiImage');
+            
+            if (savedResult && savedImage) {
+              // Display saved results
+              displayResults(savedResult, savedImage);
+              return true;
+            }
+          } catch (error) {
+            console.error('Error loading saved session:', error);
+          }
+        }
+        return false;
+      };
+      
+      // Ikigai Questions
+      const questions = [
+        {
+          text: "Was erfüllt dich mit Freude und lässt dich die Zeit vergessen?",
+          category: "Leidenschaft"
+        },
+        {
+          text: "Welche Tätigkeiten beherrschst du besonders gut?",
+          category: "Profession"
+        },
+        {
+          text: "Wobei kannst du anderen Menschen am besten helfen?",
+          category: "Mission"
+        },
+        {
+          text: "Wofür würden andere Menschen dich bezahlen?",
+          category: "Beruf"
+        },
+        {
+          text: "Was würdest du tun, wenn Geld keine Rolle spielen würde?",
+          category: "Leidenschaft"
+        },
+        {
+          text: "Welche Probleme in der Welt möchtest du lösen helfen?",
+          category: "Mission"
+        },
+        {
+          text: "Was sind deine größten Stärken laut Freunden und Familie?",
+          category: "Profession"
+        },
+        {
+          text: "Welche Tätigkeit gibt dir das Gefühl, etwas Sinnvolles zu tun?",
+          category: "Berufung"
+        },
+        {
+          text: "Wann fühlst du dich am lebendigsten und präsent?",
+          category: "Berufung"
+        },
+        {
+          text: "Wie möchtest du in Erinnerung bleiben?",
+          category: "Lebenssinn"
+        }
+      ];
+      
+      // Initialize answers array
+      const initAnswers = () => {
+        answers = questions.map(q => ({
+          question: q.text,
+          answer: '',
+          category: q.category
+        }));
+      };
+      
+      // Update question display
+      const updateQuestion = () => {
+        const question = questions[currentQuestionIndex];
+        questionText.textContent = question.text;
+        questionCategory.textContent = question.category;
+        questionCounter.textContent = `Frage ${currentQuestionIndex + 1} von ${questions.length}`;
+        answerInput.value = answers[currentQuestionIndex].answer;
+        
+        // Update progress bar
+        const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Update button states
+        prevButton.classList.toggle('opacity-50', currentQuestionIndex === 0);
+        prevButton.classList.toggle('cursor-not-allowed', currentQuestionIndex === 0);
+        
+        if (currentQuestionIndex === questions.length - 1) {
+          nextButton.textContent = 'Abschließen';
+        } else {
+          nextButton.textContent = 'Weiter';
+        }
+      };
+      
+      // Save current answer
+      const saveAnswer = () => {
+        answers[currentQuestionIndex].answer = answerInput.value.trim();
+      };
+      
+      // Navigate to next question
+      const nextQuestion = () => {
+        saveAnswer();
+        
+        if (answers[currentQuestionIndex].answer === '') {
+          // Highlight empty answer
+          answerInput.classList.add('border-red-500');
+          answerInput.classList.add('shake');
+          setTimeout(() => {
+            answerInput.classList.remove('shake');
+          }, 500);
+          return;
+        }
+        
+        answerInput.classList.remove('border-red-500');
+        
+        if (currentQuestionIndex < questions.length - 1) {
+          currentQuestionIndex++;
+          updateQuestion();
+          // Animate question transition
+          gsap.fromTo(questionText, 
+            { opacity: 0, y: 20 }, 
+            { opacity: 1, y: 0, duration: 0.5 }
+          );
+        } else {
+          // All questions answered, process results
+          processResults();
+        }
+      };
+      
+      // Navigate to previous question
+      const prevQuestion = () => {
+        if (currentQuestionIndex > 0) {
+          saveAnswer();
+          currentQuestionIndex--;
+          updateQuestion();
+          // Animate question transition
+          gsap.fromTo(questionText, 
+            { opacity: 0, y: -20 }, 
+            { opacity: 1, y: 0, duration: 0.5 }
+          );
+        }
+      };
+      
+      // Process results and generate Ikigai
+      const processResults = () => {
+        saveAnswer();
+        
+        // Hide questionnaire, show processing screen
+        gsap.to(questionnaire, { opacity: 0, duration: 0.5, onComplete: () => {
+          questionnaire.classList.add('hidden');
+          processingScreen.classList.remove('hidden');
+          gsap.fromTo(processingScreen, 
+            { opacity: 0 }, 
+            { opacity: 1, duration: 0.5 }
+          );
+          
+          // Animate processing progress
+          gsap.to(processingProgress, { width: '30%', duration: 1 });
+          
+          // Send answers to API
+          generateIkigai();
+        }});
+      };
+      
+      // Generate Ikigai using API
+      const generateIkigai = async () => {
+        try {
+          // Prepare data
+          const requestData = {
+            answers,
+            sessionId
+          };
+          
+          // Create EventSource for server-sent events
+          const eventSource = new EventSource(`/api/ikigai?sessionId=${sessionId}`);
+          
+          // Handle different event types
+          eventSource.addEventListener('processing', (event) => {
+            const data = JSON.parse(event.data);
+            processingStatus.textContent = data.message;
+            gsap.to(processingProgress, { width: '60%', duration: 1 });
+          });
+          
+          eventSource.addEventListener('ikigai', (event) => {
+            const data = JSON.parse(event.data);
+            // Store ikigai result
+            localStorage.setItem('ikigaiResult', JSON.stringify(data));
+            gsap.to(processingProgress, { width: '80%', duration: 1 });
+          });
+          
+          eventSource.addEventListener('image', (event) => {
+            const data = JSON.parse(event.data);
+            // Store image URL
+            localStorage.setItem('ikigaiImage', data.url);
+            gsap.to(processingProgress, { width: '90%', duration: 0.5 });
+          });
+          
+          eventSource.addEventListener('complete', (event) => {
+            const data = JSON.parse(event.data);
+            // Store session ID
+            localStorage.setItem('ikigaiSessionId', data.sessionId);
+            
+            // Close the event source
+            eventSource.close();
+            
+            // Complete progress and show results
+            gsap.to(processingProgress, { 
+              width: '100%', 
+              duration: 0.5,
+              onComplete: () => {
+                setTimeout(() => {
+                  showResults();
+                }, 500);
+              }
+            });
+          });
+          
+          eventSource.addEventListener('error', (event) => {
+            console.error('Error from server:', event);
+            processingStatus.textContent = 'Ein Fehler ist aufgetreten. Bitte versuche es erneut.';
+            eventSource.close();
+          });
+          
+          // Send the initial request
+          fetch('/api/ikigai', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+          }).catch(error => {
+            console.error('Error sending request:', error);
+            processingStatus.textContent = 'Verbindungsfehler. Bitte versuche es erneut.';
+          });
+          
+        } catch (error) {
+          console.error('Error generating Ikigai:', error);
+          processingStatus.textContent = 'Ein Fehler ist aufgetreten. Bitte versuche es erneut.';
+        }
+      };
+      
+      // Show results screen
+      const showResults = () => {
+        try {
+          const ikigaiResult = JSON.parse(localStorage.getItem('ikigaiResult'));
+          const imageUrl = localStorage.getItem('ikigaiImage');
+          
+          if (ikigaiResult && imageUrl) {
+            // Hide processing screen, show results
+            gsap.to(processingScreen, { opacity: 0, duration: 0.5, onComplete: () => {
+              processingScreen.classList.add('hidden');
+              displayResults(ikigaiResult, imageUrl);
+            }});
+          } else {
+            throw new Error('Missing result data');
+          }
+        } catch (error) {
+          console.error('Error showing results:', error);
+          processingStatus.textContent = 'Fehler beim Laden der Ergebnisse. Bitte versuche es erneut.';
+        }
+      };
+      
+      // Display results on the screen
+      const displayResults = (result, imageUrl) => {
+        // Set content
+        ikigaiStatement.textContent = result.ikigai;
+        ikigaiActions.innerHTML = '';
+        
+        result.actions.forEach(action => {
+          const li = document.createElement('li');
+          li.className = 'flex items-start';
+          li.innerHTML = `
+            <span class="inline-block w-6 h-6 rounded-full bg-blue-500 flex-shrink-0 mr-3 mt-1"></span>
+            <span>${action}</span>
+          `;
+          ikigaiActions.appendChild(li);
+        });
+        
+        ikigaiImage.src = imageUrl;
+        ikigaiImage.alt = `Visualisierung: ${result.ikigai}`;
+        
+        // Show results screen
+        resultsScreen.classList.remove('hidden');
+        gsap.fromTo(resultsScreen, 
+          { opacity: 0 }, 
+          { opacity: 1, duration: 0.8 }
+        );
+        
+        // Animate "IKIGAI FOUND" text with particles
+        setTimeout(() => {
+          animateIkigaiFound();
+        }, 500);
+        
+        // Animate ikigai statement
+        gsap.fromTo(ikigaiStatement, 
+          { opacity: 0, y: 20 }, 
+          { opacity: 1, y: 0, duration: 1, delay: 1.5 }
+        );
+        
+        // Animate actions
+        gsap.fromTo(ikigaiActions.children, 
+          { opacity: 0, x: -20 }, 
+          { opacity: 1, x: 0, duration: 0.8, stagger: 0.2, delay: 2 }
+        );
+        
+        // Animate image
+        gsap.fromTo(ikigaiImage, 
+          { opacity: 0 }, 
+          { opacity: 1, duration: 1.5, delay: 2.5 }
+        );
+      };
+      
+      // Animate "IKIGAI FOUND" text with particles
+      const animateIkigaiFound = () => {
+        // Make text visible first
+        gsap.to(ikigaiFound, { opacity: 1, duration: 0.5 });
+        
+        // Create particles for each letter
+        const text = ikigaiFound.textContent;
+        ikigaiFound.innerHTML = '';
+        
+        for (let i = 0; i < text.length; i++) {
+          const span = document.createElement('span');
+          span.className = 'particle-text';
+          span.textContent = text[i];
+          ikigaiFound.appendChild(span);
+          
+          // Create particles around each letter
+          for (let j = 0; j < 5; j++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            span.appendChild(particle);
+            
+            // Animate particle
+            gsap.fromTo(particle, 
+              { 
+                x: 0, 
+                y: 0, 
+                opacity: 0 
+              }, 
+              { 
+                x: gsap.utils.random(-30, 30), 
+                y: gsap.utils.random(-30, 30), 
+                opacity: gsap.utils.random(0.3, 0.8),
+                duration: gsap.utils.random(1, 2),
+                delay: i * 0.05 + j * 0.02,
+                onComplete: () => {
+                  gsap.to(particle, {
+                    opacity: 0,
+                    duration: 0.5
+                  });
+                }
+              }
+            );
+          }
+        }
+      };
+      
+      // Save result as image
+      const saveAsImage = () => {
+        // This would typically use html2canvas or similar
+        // For now, just open the DALL-E image in a new tab
+        if (ikigaiImage.src) {
+          window.open(ikigaiImage.src, '_blank');
+        }
+      };
+      
+      // Restart the process
+      const restart = () => {
+        // Clear local storage except session ID
+        localStorage.removeItem('ikigaiResult');
+        localStorage.removeItem('ikigaiImage');
+        
+        // Reset state
+        currentQuestionIndex = 0;
+        initAnswers();
+        
+        // Hide results, show welcome
+        gsap.to(resultsScreen, { opacity: 0, duration: 0.5, onComplete: () => {
+          resultsScreen.classList.add('hidden');
+          welcomeScreen.classList.remove('hidden');
+          gsap.fromTo(welcomeScreen, 
+            { opacity: 0 }, 
+            { opacity: 1, duration: 0.5 }
+          );
+        }});
+      };
+      
+      // Event Listeners
+      startButton.addEventListener('click', () => {
+        gsap.to(welcomeScreen, { opacity: 0, duration: 0.5, onComplete: () => {
+          welcomeScreen.classList.add('hidden');
+          questionnaire.classList.remove('hidden');
+          gsap.fromTo(questionnaire, 
+            { opacity: 0 }, 
+            { opacity: 1, duration: 0.5 }
+          );
+          initAnswers();
+          updateQuestion();
+        }});
+      });
+      
+      prevButton.addEventListener('click', prevQuestion);
+      nextButton.addEventListener('click', nextQuestion);
+      saveButton.addEventListener('click', saveAsImage);
+      restartButton.addEventListener('click', restart);
+      
+      // Handle Enter key in textarea
+      answerInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          nextQuestion();
+        }
+      });
+      
+      // Initialize 3D Ikigai Sphere
+      const initIkigaiSphere = () => {
+        // Set up Three.js scene
+        const container = document.getElementById('ikigai-sphere');
+        const scene = new THREE.Scene();
+        
+        // Camera setup
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+        
+        // Renderer setup
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+        
+        // Create Ikigai sphere geometry
+        const geometry = new THREE.SphereGeometry(2, 64, 64);
+        
+        // Create custom shader material
+        const material = new THREE.ShaderMaterial({
+          uniforms: {
+            time: { value: 0 },
+            progress: { value: 0 },
+            resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+          },
+          vertexShader: `
+            varying vec2 vUv;
+            varying vec3 vPosition;
+            varying vec3 vNormal;
+            
+            void main() {
+              vUv = uv;
+              vPosition = position;
+              vNormal = normal;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            uniform float time;
+            uniform float progress;
+            uniform vec2 resolution;
+            
+            varying vec2 vUv;
+            varying vec3 vPosition;
+            varying vec3 vNormal;
+            
+            #define PI 3.14159265359
+            
+            // Color palette
+            vec3 colorA = vec3(0.04, 0.14, 0.39); // Deep blue
+            vec3 colorB = vec3(0.24, 0.57, 0.80); // Medium blue
+            vec3 colorC = vec3(0.18, 0.78, 1.00); // Cyan
+            vec3 colorD = vec3(0.85, 0.19, 0.36); // Pink
+            
+            // Noise functions
+            float hash(float n) {
+              return fract(sin(n) * 43758.5453);
+            }
+            
+            float noise(vec3 x) {
+              vec3 p = floor(x);
+              vec3 f = fract(x);
+              f = f * f * (3.0 - 2.0 * f);
+              
+              float n = p.x + p.y * 57.0 + p.z * 113.0;
+              return mix(
+                mix(
+                  mix(hash(n), hash(n + 1.0), f.x),
+                  mix(hash(n + 57.0), hash(n + 58.0), f.x),
+                  f.y),
+                mix(
+                  mix(hash(n + 113.0), hash(n + 114.0), f.x),
+                  mix(hash(n + 170.0), hash(n + 171.0), f.x),
+                  f.y),
+                f.z);
+            }
+            
+            // FBM (Fractal Brownian Motion)
+            float fbm(vec3 x) {
+              float v = 0.0;
+              float a = 0.5;
+              vec3 shift = vec3(100.0);
+              
+              for (int i = 0; i < 5; ++i) {
+                v += a * noise(x);
+                x = x * 2.0 + shift;
+                a *= 0.5;
+              }
+              
+              return v;
+            }
+            
+            void main() {
+              // Base color from normal
+              vec3 normal = normalize(vNormal);
+              
+              // Create flowing noise pattern
+              float noise1 = fbm(vPosition * 0.3 + time * 0.1);
+              float noise2 = fbm(vPosition * 0.6 + time * 0.2 + 10.0);
+              
+              // Blend colors based on noise and progress
+              vec3 baseColor = mix(
+                mix(colorA, colorB, noise1),
+                mix(colorC, colorD, noise2),
+                sin(time * 0.2) * 0.5 + 0.5
+              );
+              
+              // Add glow based on progress
+              float glow = pow(max(0.0, dot(normal, vec3(0.0, 0.0, 1.0))), 1.5) * progress;
+              baseColor += vec3(0.3, 0.7, 1.0) * glow * 2.0;
+              
+              // Add rim lighting
+              float rim = pow(1.0 - max(0.0, dot(normal, vec3(0.0, 0.0, 1.0))), 4.0);
+              baseColor += vec3(0.3, 0.7, 1.0) * rim * progress * 2.0;
+              
+              // Add pulsing effect
+              float pulse = sin(time * 2.0) * 0.5 + 0.5;
+              baseColor += vec3(0.3, 0.7, 1.0) * pulse * progress * 0.3;
+              
+              // Adjust opacity based on progress
+              float alpha = 0.2 + progress * 0.8;
+              
+              gl_FragColor = vec4(baseColor, alpha);
+            }
+          `,
+          transparent: true,
+          side: THREE.DoubleSide
+        });
+        
+        // Create mesh and add to scene
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+        
+        // Animation loop
+        const animate = () => {
+          requestAnimationFrame(animate);
+          
+          // Update uniforms
+          material.uniforms.time.value += 0.01;
+          
+          // Calculate progress based on questions answered
+          let progress = 0;
+          if (answers.length > 0) {
+            const answeredCount = answers.filter(a => a.answer.trim() !== '').length;
+            progress = answeredCount / questions.length;
+          }
+          
+          // Smoothly update progress value
+          material.uniforms.progress.value += (progress - material.uniforms.progress.value) * 0.05;
+          
+          // Rotate sphere slowly
+          sphere.rotation.y += 0.001;
+          sphere.rotation.x += 0.0005;
+          
+          renderer.render(scene, camera);
+        };
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          material.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+        });
+        
+        // Start animation
+        animate();
+      };
+      
+      // Initialize the application
+      const init = async () => {
+        // Check for existing session first
+        const hasExistingSession = await checkExistingSession();
+        
+        if (!hasExistingSession) {
+          // Initialize new session
+          initAnswers();
+          localStorage.setItem('ikigaiSessionId', sessionId);
+        }
+        
+        // Initialize 3D sphere
+        initIkigaiSphere();
+      };
+      
+      // Start the application
+      init();
+    });
+  </script>
+</body>
+</html>
