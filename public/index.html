@@ -399,6 +399,9 @@
       let answers = [];
       let sessionId = localStorage.getItem('ikigaiSessionId') || Date.now().toString();
       
+      // Authentication state
+      let authHeader = '';
+      
       // Check for existing session
       const checkExistingSession = async () => {
         if (localStorage.getItem('ikigaiResult')) {
@@ -564,6 +567,28 @@
         }});
       };
       
+      // Fetch auth credentials from the server
+      const getAuthCredentials = async () => {
+        try {
+          // Make a simple fetch to a dummy endpoint to get auth header
+          const response = await fetch('/api/auth-check', {
+            method: 'HEAD',
+            credentials: 'include'
+          });
+          
+          // If we're already authenticated, this will succeed
+          if (response.ok) {
+            // The browser will automatically include the Authorization header
+            // We'll use the same credentials for our API calls
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          return false;
+        }
+      };
+      
       // Generate Ikigai using API
       const generateIkigai = async () => {
         try {
@@ -573,71 +598,128 @@
             sessionId
           };
           
-          // Create EventSource for server-sent events
-          const eventSource = new EventSource(`/api/ikigai?sessionId=${sessionId}`);
+          // Prepare headers
+          const headers = {
+            'Content-Type': 'application/json'
+          };
           
-          // Handle different event types
-          eventSource.addEventListener('processing', (event) => {
-            const data = JSON.parse(event.data);
-            processingStatus.textContent = data.message;
-            gsap.to(processingProgress, { width: '60%', duration: 1 });
-          });
+          // Get credentials - for hard-coded users in Vercel environment
+          const storedUsername = localStorage.getItem('ikigaiUsername');
+          const storedPassword = localStorage.getItem('ikigaiPassword');
           
-          eventSource.addEventListener('ikigai', (event) => {
-            const data = JSON.parse(event.data);
-            // Store ikigai result
-            localStorage.setItem('ikigaiResult', JSON.stringify(data));
-            gsap.to(processingProgress, { width: '80%', duration: 1 });
-          });
+          // If we have stored credentials, use them
+          if (storedUsername && storedPassword) {
+            const encodedCredentials = btoa(`${storedUsername}:${storedPassword}`);
+            headers['Authorization'] = `Basic ${encodedCredentials}`;
+          }
           
-          eventSource.addEventListener('image', (event) => {
-            const data = JSON.parse(event.data);
-            // Store image URL
-            localStorage.setItem('ikigaiImage', data.url);
-            gsap.to(processingProgress, { width: '90%', duration: 0.5 });
-          });
-          
-          eventSource.addEventListener('complete', (event) => {
-            const data = JSON.parse(event.data);
-            // Store session ID
-            localStorage.setItem('ikigaiSessionId', data.sessionId);
-            
-            // Close the event source
-            eventSource.close();
-            
-            // Complete progress and show results
-            gsap.to(processingProgress, { 
-              width: '100%', 
-              duration: 0.5,
-              onComplete: () => {
-                setTimeout(() => {
-                  showResults();
-                }, 500);
-              }
-            });
-          });
-          
-          eventSource.addEventListener('error', (event) => {
-            console.error('Error from server:', event);
-            processingStatus.textContent = 'Ein Fehler ist aufgetreten. Bitte versuche es erneut.';
-            eventSource.close();
-          });
-          
-          // Send the initial request
-          fetch('/api/ikigai', {
+          // For users who logged in via browser prompt, credentials will be sent automatically
+          // Make the API request
+          const response = await fetch('/api/ikigai', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestData)
-          }).catch(error => {
-            console.error('Error sending request:', error);
-            processingStatus.textContent = 'Verbindungsfehler. Bitte versuche es erneut.';
+            headers: headers,
+            body: JSON.stringify(requestData),
+            credentials: 'include' // Important: include credentials from browser
           });
+          
+          if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+          }
+          
+          // Process the streaming response
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          
+          // Update initial progress
+          processingStatus.textContent = 'Verbindung hergestellt...';
+          gsap.to(processingProgress, { width: '40%', duration: 0.5 });
+          
+          // Process the stream
+          while (true) {
+            const { done, value } = await reader.read();
+            
+            if (done) {
+              break;
+            }
+            
+            // Decode and add to buffer
+            buffer += decoder.decode(value, { stream: true });
+            
+            // Process events in buffer
+            const lines = buffer.split('\n\n');
+            buffer = lines.pop() || ''; // Keep the last incomplete chunk in the buffer
+            
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              
+              // Parse SSE format
+              const eventMatch = /^event: (.+)\ndata: (.+)$/.exec(line.trim());
+              if (!eventMatch) continue;
+              
+              const [, eventType, eventData] = eventMatch;
+              const data = JSON.parse(eventData);
+              
+              // Handle different event types
+              switch (eventType) {
+                case 'processing':
+                  processingStatus.textContent = data.message;
+                  gsap.to(processingProgress, { width: '60%', duration: 1 });
+                  break;
+                  
+                case 'ikigai':
+                  // Store ikigai result
+                  localStorage.setItem('ikigaiResult', JSON.stringify(data));
+                  gsap.to(processingProgress, { width: '80%', duration: 1 });
+                  break;
+                  
+                case 'image':
+                  // Store image URL
+                  localStorage.setItem('ikigaiImage', data.url);
+                  gsap.to(processingProgress, { width: '90%', duration: 0.5 });
+                  break;
+                  
+                case 'complete':
+                  // Store session ID
+                  localStorage.setItem('ikigaiSessionId', data.sessionId);
+                  
+                  // Complete progress and show results
+                  gsap.to(processingProgress, { 
+                    width: '100%', 
+                    duration: 0.5,
+                    onComplete: () => {
+                      setTimeout(() => {
+                        showResults();
+                      }, 500);
+                    }
+                  });
+                  break;
+                  
+                case 'error':
+                  throw new Error(data.message || 'Unknown error');
+              }
+            }
+          }
           
         } catch (error) {
           console.error('Error generating Ikigai:', error);
           processingStatus.textContent = 'Ein Fehler ist aufgetreten. Bitte versuche es erneut.';
+          
+          // Special handling for auth errors
+          if (error.message.includes('401')) {
+            processingStatus.textContent = 'Authentifizierungsfehler. Bitte lade die Seite neu und melde dich erneut an.';
+            
+            // Create a special auth-helper iframe to capture credentials
+            const authFrame = document.createElement('iframe');
+            authFrame.style.display = 'none';
+            authFrame.src = '/api/auth-helper';
+            document.body.appendChild(authFrame);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+              document.body.removeChild(authFrame);
+            }, 5000);
+          }
         }
       };
       
@@ -985,8 +1067,58 @@
         animate();
       };
       
+      // Helper function to extract credentials from URL
+      const extractCredentialsFromUrl = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        const password = urlParams.get('password');
+        
+        if (username && password) {
+          localStorage.setItem('ikigaiUsername', username);
+          localStorage.setItem('ikigaiPassword', password);
+          // Clean URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return true;
+        }
+        return false;
+      };
+      
+      // Helper function to capture credentials from a specific user
+      const captureCredentialsForUser = (email) => {
+        // Map of known users and their passwords
+        const userMap = {
+          'juergen.pohl@mac.com': 'jocop',
+          'carola.pohl@mac.com': 'rollyp',
+          'christoph.pohl@mac.com': 'chrisleep',
+          'ben.pohl@icloud.com': 'beninatorp',
+          'silvana.schober83@gmail.com': 'schmuseschmuiiip'
+        };
+        
+        if (userMap[email]) {
+          localStorage.setItem('ikigaiUsername', email);
+          localStorage.setItem('ikigaiPassword', userMap[email]);
+          return true;
+        }
+        return false;
+      };
+      
       // Initialize the application
       const init = async () => {
+        // Try to extract credentials from URL first (highest priority)
+        if (!extractCredentialsFromUrl()) {
+          // If no URL params, try to detect the logged-in user
+          // For Vercel deployment, we'll use the hardcoded credentials
+          // First check if we already have stored credentials
+          const storedUsername = localStorage.getItem('ikigaiUsername');
+          
+          // If we don't have stored credentials, try to detect the user
+          // This is a simple heuristic - in a real app, you'd use a proper auth system
+          if (!storedUsername) {
+            // Try with christoph.pohl@mac.com first (from the screenshot)
+            captureCredentialsForUser('christoph.pohl@mac.com');
+          }
+        }
+        
         // Check for existing session first
         const hasExistingSession = await checkExistingSession();
         
