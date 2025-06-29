@@ -7,39 +7,75 @@
   <meta name="description" content="Eine persönliche Reise zur Entdeckung deines Ikigai - dem Schnittpunkt von Leidenschaft, Mission, Beruf und Berufung.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
   
-  <!-- Tailwind CSS from CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- Three.js for 3D visualization -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   
   <!-- GSAP for animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+  
+  <!-- Embedded Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            aurora: {
+              dark: '#0B0E16',
+              blue: '#0E1B4D',
+              purple: '#3B1A79',
+              pink: '#A12568',
+              green: '#00E5A1',
+              cyan: '#00BFFF',
+              indigo: '#4B0082'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Montserrat', 'sans-serif']
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'shimmer': 'shimmer 2s linear infinite'
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' }
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '200% 0' },
+              '100%': { backgroundPosition: '-200% 0' }
+            }
+          },
+          boxShadow: {
+            'neon': '0 0 5px theme("colors.aurora.green"), 0 0 20px theme("colors.aurora.green")',
+            'neon-blue': '0 0 5px theme("colors.aurora.cyan"), 0 0 20px theme("colors.aurora.cyan")',
+            'neon-purple': '0 0 5px theme("colors.aurora.purple"), 0 0 20px theme("colors.aurora.purple")',
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.36)'
+          }
+        }
+      }
+    };
+  </script>
   
   <style>
-    /* Custom styles beyond Tailwind */
-    @font-face {
-      font-family: 'Montserrat';
-      src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2') format('woff2');
-      font-weight: normal;
-      font-style: normal;
-    }
-    
-    :root {
-      --aurora-blue: #0a2463;
-      --aurora-purple: #3e92cc;
-      --aurora-green: #2dc7ff;
-      --aurora-pink: #d8315b;
-      --aurora-dark: #1e1b18;
-    }
-    
+    /* Base styles */
     body {
-      font-family: 'Montserrat', system-ui, sans-serif;
-      background-color: var(--aurora-dark);
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #0B0E16;
       overflow-x: hidden;
       min-height: 100vh;
     }
     
+    /* Aurora Background */
     .aurora-bg {
       position: fixed;
       top: 0;
@@ -47,20 +83,21 @@
       width: 100%;
       height: 100%;
       z-index: -1;
-      background: linear-gradient(125deg, var(--aurora-dark) 0%, var(--aurora-blue) 40%, var(--aurora-purple) 60%, var(--aurora-dark) 100%);
-      opacity: 0.8;
+      overflow: hidden;
     }
     
     .aurora-bg::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at 50% 50%, var(--aurora-green) 0%, transparent 40%);
-      opacity: 0.2;
-      animation: aurora-pulse 15s ease-in-out infinite alternate;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        radial-gradient(circle at 20% 35%, rgba(14, 27, 77, 0.8) 0%, transparent 50%),
+        radial-gradient(circle at 75% 44%, rgba(59, 26, 121, 0.8) 0%, transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(161, 37, 104, 0.6) 0%, transparent 40%);
+      animation: aurora-rotate 60s linear infinite;
     }
     
     .aurora-bg::after {
@@ -70,21 +107,48 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle at 70% 30%, var(--aurora-pink) 0%, transparent 50%);
-      opacity: 0.15;
-      animation: aurora-float 20s ease-in-out infinite alternate-reverse;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+      opacity: 0.2;
     }
     
-    @keyframes aurora-pulse {
-      0% { transform: scale(1.0); opacity: 0.2; }
-      50% { transform: scale(1.2); opacity: 0.3; }
-      100% { transform: scale(1.0); opacity: 0.2; }
+    .aurora-stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(1px 1px at 25% 15%, white, transparent),
+        radial-gradient(1px 1px at 50% 40%, white, transparent),
+        radial-gradient(2px 2px at 15% 55%, white, transparent),
+        radial-gradient(1px 1px at 60% 70%, white, transparent),
+        radial-gradient(1.5px 1.5px at 70% 10%, white, transparent),
+        radial-gradient(1px 1px at 85% 30%, white, transparent),
+        radial-gradient(1.5px 1.5px at 10% 20%, white, transparent),
+        radial-gradient(1px 1px at 35% 85%, white, transparent);
+      opacity: 0.4;
     }
     
-    @keyframes aurora-float {
-      0% { transform: translateY(0) translateX(0); }
-      50% { transform: translateY(-20px) translateX(20px); }
-      100% { transform: translateY(0) translateX(0); }
+    @keyframes aurora-rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Glassmorphism card */
+    .glass-card {
+      background: rgba(14, 27, 77, 0.2);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border-radius: 24px;
+      transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    
+    .glass-card:hover {
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transform: translateY(-5px);
     }
     
     /* Ikigai sphere container */
@@ -95,108 +159,113 @@
       width: 100%;
       height: 100%;
       z-index: 0;
-      opacity: 0.8;
+      opacity: 0.9;
       pointer-events: none;
     }
     
-    /* Question card styling */
-    .question-card {
-      background: rgba(14, 20, 44, 0.7);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .question-card:hover {
-      box-shadow: 0 12px 40px rgba(62, 146, 204, 0.4);
-      transform: translateY(-5px);
-    }
-    
-    /* Input styling */
-    .ikigai-input {
-      background: rgba(30, 27, 24, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s ease;
-    }
-    
-    .ikigai-input:focus {
-      border-color: var(--aurora-green);
-      box-shadow: 0 0 0 2px rgba(45, 199, 255, 0.3);
-      background: rgba(30, 27, 24, 0.7);
-    }
-    
-    /* Button styling */
-    .ikigai-button {
-      background: linear-gradient(135deg, var(--aurora-purple) 0%, var(--aurora-blue) 100%);
-      transition: all 0.3s ease;
+    /* Neon glow buttons */
+    .neon-button {
       position: relative;
+      background: linear-gradient(90deg, #0E1B4D 0%, #3B1A79 100%);
+      color: white;
+      border-radius: 9999px;
       overflow: hidden;
+      transition: all 0.4s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
     
-    .ikigai-button::before {
+    .neon-button:hover {
+      box-shadow: 0 0 15px rgba(0, 191, 255, 0.5), 0 0 30px rgba(0, 191, 255, 0.3);
+      transform: translateY(-2px);
+      border: 1px solid rgba(0, 191, 255, 0.3);
+    }
+    
+    .neon-button::before {
       content: '';
       position: absolute;
       top: 0;
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
-      transition: all 0.5s ease;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.6s ease;
     }
     
-    .ikigai-button:hover::before {
+    .neon-button:hover::before {
       left: 100%;
     }
     
-    .ikigai-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(45, 199, 255, 0.4);
+    /* Shimmer effect */
+    .shimmer {
+      background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0) 0%, 
+        rgba(255, 255, 255, 0.05) 20%, 
+        rgba(255, 255, 255, 0.1) 60%, 
+        rgba(255, 255, 255, 0.05) 80%, 
+        rgba(255, 255, 255, 0) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite linear;
     }
     
-    /* Results section styling */
-    .result-container {
-      background: rgba(14, 20, 44, 0.8);
-      backdrop-filter: blur(15px);
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    /* Input styling */
+    .ikigai-input {
+      background: rgba(11, 14, 22, 0.6);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s ease;
+      border-radius: 12px;
     }
     
-    /* Particle effect for "IKIGAI FOUND" text */
-    .particle-text {
-      position: relative;
-      display: inline-block;
+    .ikigai-input:focus {
+      border-color: #00BFFF;
+      box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2);
+      background: rgba(11, 14, 22, 0.8);
     }
     
-    .particle {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background-color: var(--aurora-green);
-      opacity: 0;
+    /* Progress bar */
+    .progress-bg {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
     }
     
-    /* Progress bar styling */
-    .progress-bar {
-      height: 4px;
-      background: linear-gradient(90deg, var(--aurora-purple) 0%, var(--aurora-green) 100%);
-      transition: width 0.3s ease;
+    .progress-fill {
+      background: linear-gradient(90deg, #00BFFF 0%, #00E5A1 100%);
+      border-radius: 9999px;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
     }
     
     /* Loading animation */
     .loading-spinner {
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
       border: 3px solid rgba(255, 255, 255, 0.1);
       border-radius: 50%;
-      border-top-color: var(--aurora-green);
+      border-top-color: #00E5A1;
       animation: spin 1s ease-in-out infinite;
+      box-shadow: 0 0 10px rgba(0, 229, 161, 0.3);
     }
     
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+    
+    /* Particle effect */
+    .particle {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: #00E5A1;
+      opacity: 0;
+      box-shadow: 0 0 10px #00E5A1;
     }
     
     /* Custom scrollbar */
@@ -205,154 +274,230 @@
     }
     
     ::-webkit-scrollbar-track {
-      background: rgba(30, 27, 24, 0.5);
+      background: rgba(11, 14, 22, 0.5);
     }
     
     ::-webkit-scrollbar-thumb {
-      background: var(--aurora-purple);
+      background: rgba(0, 191, 255, 0.5);
       border-radius: 3px;
     }
     
     ::-webkit-scrollbar-thumb:hover {
-      background: var(--aurora-green);
+      background: rgba(0, 229, 161, 0.5);
+    }
+    
+    /* Shake animation */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .shake {
+      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
     }
     
     /* Responsive adjustments */
     @media (max-width: 640px) {
-      .question-card {
-        width: 92%;
-        margin: 0 auto;
-      }
-      
-      #ikigai-sphere {
-        opacity: 0.5;
+      .glass-card {
+        border-radius: 18px;
+        padding: 1.25rem !important;
       }
     }
   </style>
 </head>
-<body class="text-white min-h-screen flex flex-col">
+<body class="text-white min-h-screen flex flex-col overflow-hidden">
   <!-- Aurora Background -->
-  <div class="aurora-bg"></div>
+  <div class="aurora-bg">
+    <div class="aurora-stars"></div>
+  </div>
+  
+  <!-- Floating particles -->
+  <div id="particles" class="fixed inset-0 z-0 pointer-events-none"></div>
   
   <!-- 3D Ikigai Sphere Container -->
-  <div id="ikigai-sphere"></div>
+  <div id="ikigai-sphere" class="z-0"></div>
   
   <!-- Main Content -->
   <div class="container mx-auto px-4 py-8 flex-grow flex flex-col items-center justify-center z-10 relative">
     
     <!-- Header -->
-    <header class="w-full text-center mb-8">
-      <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-        IKIGAI X-ONE
+    <header class="w-full text-center mb-12 animate-float">
+      <h1 class="text-5xl md:text-7xl font-display font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-aurora-cyan via-aurora-green to-aurora-purple">
+        IKIGAI <span class="text-white opacity-80">X-ONE</span>
       </h1>
-      <p class="text-lg md:text-xl text-blue-200 opacity-90 max-w-2xl mx-auto">
+      <div class="h-px w-24 md:w-40 bg-gradient-to-r from-transparent via-aurora-cyan to-transparent mx-auto my-4"></div>
+      <p class="text-lg md:text-xl text-gray-300 opacity-90 max-w-2xl mx-auto font-light tracking-wide">
         Entdecke den Schnittpunkt deiner Leidenschaft, Mission, Berufung und Profession
       </p>
     </header>
     
     <!-- Welcome Screen -->
-    <div id="welcome-screen" class="question-card w-full max-w-2xl p-8 rounded-xl text-center">
-      <h2 class="text-2xl md:text-3xl font-bold mb-6">Willkommen zu deiner Ikigai-Reise</h2>
-      <p class="mb-8 text-blue-200">
-        Ikigai (生き甲斐) ist ein japanisches Konzept, das sich auf den Grund deines Seins bezieht - 
-        den Grund, warum du jeden Morgen aufstehst. Beantworte die folgenden Fragen, um dein persönliches 
-        Ikigai zu entdecken.
-      </p>
-      <button id="start-button" class="ikigai-button px-8 py-3 rounded-full text-white font-bold text-lg shadow-lg">
-        Reise beginnen
+    <div id="welcome-screen" class="glass-card w-full max-w-2xl p-10 text-center transform transition-all duration-700">
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-aurora-blue via-aurora-cyan to-aurora-purple rounded-t-2xl"></div>
+      
+      <h2 class="text-3xl md:text-4xl font-display font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+        Willkommen zu deiner Ikigai-Reise
+      </h2>
+      
+      <div class="mb-8 text-gray-300 leading-relaxed">
+        <p class="mb-4">
+          <span class="text-aurora-cyan font-semibold">Ikigai</span> <span class="text-sm text-aurora-green">(生き甲斐)</span> ist ein japanisches Konzept, das sich auf den Grund deines Seins bezieht — 
+          den Grund, warum du jeden Morgen aufstehst.
+        </p>
+        <p>
+          Beantworte die folgenden Fragen, um dein persönliches 
+          Ikigai zu entdecken und deinen Lebenssinn zu visualisieren.
+        </p>
+      </div>
+      
+      <button id="start-button" class="neon-button group px-10 py-4 text-lg font-semibold tracking-wide transition-all duration-300 transform hover:scale-105">
+        <span class="relative z-10 flex items-center justify-center">
+          <span>Reise beginnen</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 transition-transform duration-300 transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </span>
       </button>
     </div>
     
     <!-- Questionnaire -->
-    <div id="questionnaire" class="question-card w-full max-w-2xl p-8 rounded-xl hidden">
+    <div id="questionnaire" class="glass-card w-full max-w-2xl p-10 hidden transform transition-all duration-700">
       <!-- Progress Bar -->
-      <div class="w-full h-1 bg-gray-800 rounded-full mb-6 overflow-hidden">
-        <div id="progress-bar" class="progress-bar h-full w-0"></div>
+      <div class="progress-bg h-2 mb-8 overflow-hidden">
+        <div id="progress-bar" class="progress-fill h-full w-0"></div>
       </div>
       
       <!-- Question Counter -->
-      <div class="flex justify-between items-center mb-6">
-        <span id="question-counter" class="text-sm text-blue-300">Frage 1 von 10</span>
-        <span id="question-category" class="text-sm px-3 py-1 rounded-full bg-blue-900 text-blue-200">Leidenschaft</span>
+      <div class="flex justify-between items-center mb-8">
+        <span id="question-counter" class="text-sm font-medium text-aurora-cyan px-4 py-1 rounded-full bg-aurora-blue bg-opacity-30 border border-aurora-cyan border-opacity-20">
+          Frage 1 von 10
+        </span>
+        <span id="question-category" class="text-sm font-medium text-aurora-green px-4 py-1 rounded-full bg-aurora-blue bg-opacity-30 border border-aurora-green border-opacity-20">
+          Leidenschaft
+        </span>
       </div>
       
       <!-- Question Text -->
-      <h3 id="question-text" class="text-xl md:text-2xl font-semibold mb-6">
+      <h3 id="question-text" class="text-2xl md:text-3xl font-display font-semibold mb-8 leading-relaxed text-white">
         Was erfüllt dich mit Freude und lässt dich die Zeit vergessen?
       </h3>
       
       <!-- Answer Input -->
-      <div class="mb-6">
-        <textarea id="answer-input" class="ikigai-input w-full p-4 rounded-lg text-white resize-none h-32 focus:outline-none" placeholder="Reflektiere und teile deine Gedanken..."></textarea>
+      <div class="mb-8">
+        <textarea id="answer-input" class="ikigai-input w-full p-5 text-white resize-none h-40 focus:outline-none text-lg" placeholder="Reflektiere und teile deine Gedanken..."></textarea>
       </div>
       
       <!-- Navigation Buttons -->
       <div class="flex justify-between">
-        <button id="prev-button" class="ikigai-button px-5 py-2 rounded-full text-white font-medium opacity-50 cursor-not-allowed">
-          Zurück
+        <button id="prev-button" class="neon-button px-6 py-3 text-white font-medium opacity-50 cursor-not-allowed">
+          <span class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Zurück
+          </span>
         </button>
-        <button id="next-button" class="ikigai-button px-5 py-2 rounded-full text-white font-medium">
-          Weiter
+        <button id="next-button" class="neon-button px-6 py-3 text-white font-medium">
+          <span class="flex items-center">
+            Weiter
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
         </button>
       </div>
     </div>
     
     <!-- Processing Screen -->
-    <div id="processing-screen" class="question-card w-full max-w-2xl p-8 rounded-xl text-center hidden">
-      <h2 class="text-2xl font-bold mb-6">Dein Ikigai wird entdeckt...</h2>
-      <div class="flex justify-center mb-8">
+    <div id="processing-screen" class="glass-card w-full max-w-2xl p-10 text-center hidden transform transition-all duration-700">
+      <h2 class="text-3xl font-display font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-aurora-cyan to-aurora-green">
+        Dein Ikigai wird entdeckt...
+      </h2>
+      
+      <div class="flex justify-center mb-10">
         <div class="loading-spinner"></div>
       </div>
-      <p id="processing-status" class="text-blue-200">Analysiere deine Antworten...</p>
+      
+      <p id="processing-status" class="text-lg text-gray-300 mb-6">Analysiere deine Antworten...</p>
       
       <!-- Processing Progress Bar -->
-      <div class="w-full h-2 bg-gray-800 rounded-full mt-6 overflow-hidden">
-        <div id="processing-progress" class="progress-bar h-full w-0"></div>
+      <div class="progress-bg h-3 mt-8 overflow-hidden">
+        <div id="processing-progress" class="progress-fill h-full w-0"></div>
       </div>
     </div>
     
     <!-- Results Screen -->
-    <div id="results-screen" class="w-full max-w-4xl hidden">
+    <div id="results-screen" class="w-full max-w-4xl hidden transform transition-all duration-700">
       <!-- Ikigai Found Header -->
-      <div class="text-center mb-12">
-        <h2 id="ikigai-found" class="text-3xl md:text-5xl font-bold mb-4 opacity-0">
+      <div class="text-center mb-16">
+        <h2 id="ikigai-found" class="text-4xl md:text-6xl font-display font-bold mb-6 opacity-0 tracking-wider">
           IKIGAI GEFUNDEN
         </h2>
-        <div class="h-1 w-32 bg-gradient-to-r from-blue-400 to-purple-500 mx-auto rounded-full"></div>
+        <div class="h-1 w-48 bg-gradient-to-r from-aurora-cyan via-aurora-green to-aurora-purple mx-auto rounded-full"></div>
       </div>
       
       <!-- Results Content -->
-      <div class="result-container p-8 md:p-12 rounded-2xl">
+      <div class="glass-card p-10 md:p-14 rounded-3xl">
         <!-- Ikigai Statement -->
-        <div class="mb-10">
-          <h3 class="text-xl text-blue-300 mb-3">Dein persönliches Ikigai</h3>
-          <p id="ikigai-statement" class="text-2xl md:text-3xl font-medium leading-relaxed"></p>
+        <div class="mb-12">
+          <h3 class="text-xl font-medium text-aurora-cyan mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Dein persönliches Ikigai
+          </h3>
+          <div class="relative">
+            <p id="ikigai-statement" class="text-2xl md:text-3xl font-display font-medium leading-relaxed text-white"></p>
+            <div class="absolute -left-6 -top-6 text-6xl text-aurora-purple opacity-20">"</div>
+            <div class="absolute -right-6 -bottom-6 text-6xl text-aurora-purple opacity-20">"</div>
+          </div>
         </div>
         
         <!-- Weekly Actions -->
-        <div class="mb-10">
-          <h3 class="text-xl text-blue-300 mb-4">Deine wöchentlichen Gewohnheiten</h3>
-          <ul id="ikigai-actions" class="space-y-4">
+        <div class="mb-12">
+          <h3 class="text-xl font-medium text-aurora-green mb-6 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Deine wöchentlichen Gewohnheiten
+          </h3>
+          <ul id="ikigai-actions" class="space-y-6">
             <!-- Actions will be inserted here -->
           </ul>
         </div>
         
         <!-- Ikigai Visualization -->
-        <div class="mb-8">
-          <h3 class="text-xl text-blue-300 mb-4">Deine Ikigai-Visualisierung</h3>
-          <div class="relative rounded-xl overflow-hidden shadow-2xl">
-            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
-            <img id="ikigai-image" src="" alt="Deine Ikigai-Visualisierung" class="w-full h-auto rounded-xl transform transition-transform duration-700 hover:scale-105">
+        <div class="mb-12">
+          <h3 class="text-xl font-medium text-aurora-cyan mb-6 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Deine Ikigai-Visualisierung
+          </h3>
+          <div class="relative rounded-2xl overflow-hidden shadow-2xl group">
+            <div class="absolute inset-0 bg-gradient-to-t from-aurora-dark to-transparent opacity-60 z-10"></div>
+            <img id="ikigai-image" src="" alt="Deine Ikigai-Visualisierung" class="w-full h-auto rounded-2xl transform transition-all duration-1000 group-hover:scale-105">
           </div>
         </div>
         
         <!-- Save/Share Options -->
-        <div class="flex flex-wrap justify-center gap-4 mt-10">
-          <button id="save-button" class="ikigai-button px-6 py-3 rounded-full text-white font-medium">
-            Als Bild speichern
+        <div class="flex flex-wrap justify-center gap-6 mt-12">
+          <button id="save-button" class="neon-button group px-8 py-4 text-white font-medium transition-all duration-300">
+            <span class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Als Bild speichern
+            </span>
           </button>
-          <button id="restart-button" class="px-6 py-3 rounded-full text-white font-medium border border-blue-400 hover:bg-blue-900 transition-colors">
-            Neue Reise beginnen
+          <button id="restart-button" class="px-8 py-4 rounded-full text-white font-medium border border-aurora-cyan hover:bg-aurora-blue hover:bg-opacity-30 transition-all duration-300">
+            <span class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Neue Reise beginnen
+            </span>
           </button>
         </div>
       </div>
@@ -360,8 +505,12 @@
   </div>
   
   <!-- Footer -->
-  <footer class="w-full py-6 text-center text-blue-300 text-sm z-10">
-    <p>IKIGAI X-ONE &copy; 2025 | Erschaffe deinen Lebenssinn</p>
+  <footer class="w-full py-8 text-center text-gray-400 text-sm z-10">
+    <div class="flex flex-col items-center justify-center">
+      <p class="mb-2">IKIGAI X-ONE &copy; 2025</p>
+      <div class="h-px w-24 bg-gradient-to-r from-transparent via-aurora-cyan to-transparent mx-auto my-2"></div>
+      <p class="text-xs text-gray-500">Erschaffe deinen Lebenssinn</p>
+    </div>
   </footer>
   
   <!-- Application Script -->
@@ -401,6 +550,42 @@
       
       // Authentication state
       let authHeader = '';
+      
+      // Create floating particles
+      const createParticles = () => {
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 50;
+        
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement('div');
+          particle.classList.add('absolute', 'rounded-full');
+          
+          // Randomize size
+          const size = Math.random() * 3 + 1;
+          particle.style.width = `${size}px`;
+          particle.style.height = `${size}px`;
+          
+          // Randomize position
+          particle.style.left = `${Math.random() * 100}vw`;
+          particle.style.top = `${Math.random() * 100}vh`;
+          
+          // Randomize color
+          const colors = ['#00E5A1', '#00BFFF', '#A12568', '#FFFFFF'];
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          particle.style.backgroundColor = color;
+          particle.style.boxShadow = `0 0 ${size * 2}px ${color}`;
+          
+          // Randomize opacity
+          particle.style.opacity = Math.random() * 0.5 + 0.1;
+          
+          // Add animation
+          const duration = Math.random() * 60 + 30;
+          const delay = Math.random() * 10;
+          particle.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+          
+          particlesContainer.appendChild(particle);
+        }
+      };
       
       // Check for existing session
       const checkExistingSession = async () => {
@@ -492,8 +677,20 @@
         
         if (currentQuestionIndex === questions.length - 1) {
           nextButton.textContent = 'Abschließen';
+          nextButton.querySelector('span').innerHTML = `
+            Abschließen
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          `;
         } else {
           nextButton.textContent = 'Weiter';
+          nextButton.querySelector('span').innerHTML = `
+            Weiter
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          `;
         }
       };
       
@@ -524,7 +721,7 @@
           // Animate question transition
           gsap.fromTo(questionText, 
             { opacity: 0, y: 20 }, 
-            { opacity: 1, y: 0, duration: 0.5 }
+            { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
           );
         } else {
           // All questions answered, process results
@@ -541,7 +738,7 @@
           // Animate question transition
           gsap.fromTo(questionText, 
             { opacity: 0, y: -20 }, 
-            { opacity: 1, y: 0, duration: 0.5 }
+            { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
           );
         }
       };
@@ -551,20 +748,26 @@
         saveAnswer();
         
         // Hide questionnaire, show processing screen
-        gsap.to(questionnaire, { opacity: 0, duration: 0.5, onComplete: () => {
-          questionnaire.classList.add('hidden');
-          processingScreen.classList.remove('hidden');
-          gsap.fromTo(processingScreen, 
-            { opacity: 0 }, 
-            { opacity: 1, duration: 0.5 }
-          );
-          
-          // Animate processing progress
-          gsap.to(processingProgress, { width: '30%', duration: 1 });
-          
-          // Send answers to API
-          generateIkigai();
-        }});
+        gsap.to(questionnaire, { 
+          opacity: 0, 
+          y: -20, 
+          duration: 0.5, 
+          ease: "power2.inOut",
+          onComplete: () => {
+            questionnaire.classList.add('hidden');
+            processingScreen.classList.remove('hidden');
+            gsap.fromTo(processingScreen, 
+              { opacity: 0, y: 20 }, 
+              { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+            );
+            
+            // Animate processing progress
+            gsap.to(processingProgress, { width: '30%', duration: 1.5, ease: "power1.inOut" });
+            
+            // Send answers to API
+            generateIkigai();
+          }
+        });
       };
       
       // Fetch auth credentials from the server
@@ -633,7 +836,7 @@
           
           // Update initial progress
           processingStatus.textContent = 'Verbindung hergestellt...';
-          gsap.to(processingProgress, { width: '40%', duration: 0.5 });
+          gsap.to(processingProgress, { width: '40%', duration: 1, ease: "power1.inOut" });
           
           // Process the stream
           while (true) {
@@ -664,33 +867,37 @@
               switch (eventType) {
                 case 'processing':
                   processingStatus.textContent = data.message;
-                  gsap.to(processingProgress, { width: '60%', duration: 1 });
+                  gsap.to(processingProgress, { width: '60%', duration: 1.5, ease: "power1.inOut" });
                   break;
                   
                 case 'ikigai':
                   // Store ikigai result
                   localStorage.setItem('ikigaiResult', JSON.stringify(data));
-                  gsap.to(processingProgress, { width: '80%', duration: 1 });
+                  processingStatus.textContent = 'Ikigai gefunden! Erstelle Visualisierung...';
+                  gsap.to(processingProgress, { width: '80%', duration: 1.5, ease: "power1.inOut" });
                   break;
                   
                 case 'image':
                   // Store image URL
                   localStorage.setItem('ikigaiImage', data.url);
-                  gsap.to(processingProgress, { width: '90%', duration: 0.5 });
+                  processingStatus.textContent = 'Visualisierung erstellt! Bereite Ergebnisse vor...';
+                  gsap.to(processingProgress, { width: '90%', duration: 1, ease: "power1.inOut" });
                   break;
                   
                 case 'complete':
                   // Store session ID
                   localStorage.setItem('ikigaiSessionId', data.sessionId);
+                  processingStatus.textContent = 'Fertig! Zeige Ergebnisse...';
                   
                   // Complete progress and show results
                   gsap.to(processingProgress, { 
                     width: '100%', 
-                    duration: 0.5,
+                    duration: 1,
+                    ease: "power1.inOut",
                     onComplete: () => {
                       setTimeout(() => {
                         showResults();
-                      }, 500);
+                      }, 800);
                     }
                   });
                   break;
@@ -731,10 +938,16 @@
           
           if (ikigaiResult && imageUrl) {
             // Hide processing screen, show results
-            gsap.to(processingScreen, { opacity: 0, duration: 0.5, onComplete: () => {
-              processingScreen.classList.add('hidden');
-              displayResults(ikigaiResult, imageUrl);
-            }});
+            gsap.to(processingScreen, { 
+              opacity: 0, 
+              y: -20, 
+              duration: 0.5, 
+              ease: "power2.inOut",
+              onComplete: () => {
+                processingScreen.classList.add('hidden');
+                displayResults(ikigaiResult, imageUrl);
+              }
+            });
           } else {
             throw new Error('Missing result data');
           }
@@ -750,12 +963,14 @@
         ikigaiStatement.textContent = result.ikigai;
         ikigaiActions.innerHTML = '';
         
-        result.actions.forEach(action => {
+        result.actions.forEach((action, index) => {
           const li = document.createElement('li');
-          li.className = 'flex items-start';
+          li.className = 'flex items-start bg-aurora-blue bg-opacity-20 p-5 rounded-xl border border-aurora-cyan border-opacity-10';
           li.innerHTML = `
-            <span class="inline-block w-6 h-6 rounded-full bg-blue-500 flex-shrink-0 mr-3 mt-1"></span>
-            <span>${action}</span>
+            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-aurora-cyan to-aurora-green flex items-center justify-center mr-4 mt-0.5 shadow-neon-blue">
+              ${index + 1}
+            </span>
+            <span class="text-gray-200">${action}</span>
           `;
           ikigaiActions.appendChild(li);
         });
@@ -766,8 +981,8 @@
         // Show results screen
         resultsScreen.classList.remove('hidden');
         gsap.fromTo(resultsScreen, 
-          { opacity: 0 }, 
-          { opacity: 1, duration: 0.8 }
+          { opacity: 0, y: 20 }, 
+          { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
         );
         
         // Animate "IKIGAI FOUND" text with particles
@@ -778,19 +993,19 @@
         // Animate ikigai statement
         gsap.fromTo(ikigaiStatement, 
           { opacity: 0, y: 20 }, 
-          { opacity: 1, y: 0, duration: 1, delay: 1.5 }
+          { opacity: 1, y: 0, duration: 1, delay: 1.5, ease: "power2.out" }
         );
         
         // Animate actions
         gsap.fromTo(ikigaiActions.children, 
           { opacity: 0, x: -20 }, 
-          { opacity: 1, x: 0, duration: 0.8, stagger: 0.2, delay: 2 }
+          { opacity: 1, x: 0, duration: 0.8, stagger: 0.2, delay: 2, ease: "back.out(1.2)" }
         );
         
         // Animate image
         gsap.fromTo(ikigaiImage, 
-          { opacity: 0 }, 
-          { opacity: 1, duration: 1.5, delay: 2.5 }
+          { opacity: 0, scale: 0.95 }, 
+          { opacity: 1, scale: 1, duration: 1.5, delay: 2.5, ease: "power2.out" }
         );
       };
       
@@ -805,12 +1020,19 @@
         
         for (let i = 0; i < text.length; i++) {
           const span = document.createElement('span');
-          span.className = 'particle-text';
+          span.className = 'relative inline-block';
           span.textContent = text[i];
+          
+          // Add shimmer effect to each letter
+          gsap.fromTo(span, 
+            { opacity: 0, y: -20 },
+            { opacity: 1, y: 0, duration: 0.5, delay: i * 0.1, ease: "back.out(1.7)" }
+          );
+          
           ikigaiFound.appendChild(span);
           
           // Create particles around each letter
-          for (let j = 0; j < 5; j++) {
+          for (let j = 0; j < 8; j++) {
             const particle = document.createElement('div');
             particle.className = 'particle';
             span.appendChild(particle);
@@ -823,21 +1045,29 @@
                 opacity: 0 
               }, 
               { 
-                x: gsap.utils.random(-30, 30), 
-                y: gsap.utils.random(-30, 30), 
-                opacity: gsap.utils.random(0.3, 0.8),
-                duration: gsap.utils.random(1, 2),
-                delay: i * 0.05 + j * 0.02,
+                x: gsap.utils.random(-50, 50), 
+                y: gsap.utils.random(-50, 50), 
+                opacity: gsap.utils.random(0.4, 0.9),
+                duration: gsap.utils.random(1.5, 2.5),
+                delay: i * 0.1 + j * 0.05,
+                ease: "power2.out",
                 onComplete: () => {
                   gsap.to(particle, {
                     opacity: 0,
-                    duration: 0.5
+                    duration: 0.8,
+                    ease: "power2.in"
                   });
                 }
               }
             );
           }
         }
+        
+        // Add a glow effect to the whole text
+        setTimeout(() => {
+          ikigaiFound.classList.add('text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'from-aurora-cyan', 'via-white', 'to-aurora-green');
+          ikigaiFound.style.textShadow = '0 0 20px rgba(0, 229, 161, 0.5)';
+        }, text.length * 100 + 500);
       };
       
       // Save result as image
@@ -860,28 +1090,40 @@
         initAnswers();
         
         // Hide results, show welcome
-        gsap.to(resultsScreen, { opacity: 0, duration: 0.5, onComplete: () => {
-          resultsScreen.classList.add('hidden');
-          welcomeScreen.classList.remove('hidden');
-          gsap.fromTo(welcomeScreen, 
-            { opacity: 0 }, 
-            { opacity: 1, duration: 0.5 }
-          );
-        }});
+        gsap.to(resultsScreen, { 
+          opacity: 0, 
+          y: -20, 
+          duration: 0.5, 
+          ease: "power2.inOut",
+          onComplete: () => {
+            resultsScreen.classList.add('hidden');
+            welcomeScreen.classList.remove('hidden');
+            gsap.fromTo(welcomeScreen, 
+              { opacity: 0, y: 20 }, 
+              { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+            );
+          }
+        });
       };
       
       // Event Listeners
       startButton.addEventListener('click', () => {
-        gsap.to(welcomeScreen, { opacity: 0, duration: 0.5, onComplete: () => {
-          welcomeScreen.classList.add('hidden');
-          questionnaire.classList.remove('hidden');
-          gsap.fromTo(questionnaire, 
-            { opacity: 0 }, 
-            { opacity: 1, duration: 0.5 }
-          );
-          initAnswers();
-          updateQuestion();
-        }});
+        gsap.to(welcomeScreen, { 
+          opacity: 0, 
+          y: -20, 
+          duration: 0.5, 
+          ease: "power2.inOut",
+          onComplete: () => {
+            welcomeScreen.classList.add('hidden');
+            questionnaire.classList.remove('hidden');
+            gsap.fromTo(questionnaire, 
+              { opacity: 0, y: 20 }, 
+              { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+            );
+            initAnswers();
+            updateQuestion();
+          }
+        });
       });
       
       prevButton.addEventListener('click', prevQuestion);
@@ -947,10 +1189,10 @@
             #define PI 3.14159265359
             
             // Color palette
-            vec3 colorA = vec3(0.04, 0.14, 0.39); // Deep blue
-            vec3 colorB = vec3(0.24, 0.57, 0.80); // Medium blue
-            vec3 colorC = vec3(0.18, 0.78, 1.00); // Cyan
-            vec3 colorD = vec3(0.85, 0.19, 0.36); // Pink
+            vec3 colorA = vec3(0.05, 0.11, 0.3); // Deep blue
+            vec3 colorB = vec3(0.15, 0.1, 0.3); // Deep purple
+            vec3 colorC = vec3(0.0, 0.9, 0.63); // Cyan
+            vec3 colorD = vec3(0.59, 0.15, 0.41); // Pink
             
             // Noise functions
             float hash(float n) {
@@ -1007,18 +1249,26 @@
               
               // Add glow based on progress
               float glow = pow(max(0.0, dot(normal, vec3(0.0, 0.0, 1.0))), 1.5) * progress;
-              baseColor += vec3(0.3, 0.7, 1.0) * glow * 2.0;
+              baseColor += vec3(0.0, 0.9, 0.63) * glow * 3.0;
               
               // Add rim lighting
               float rim = pow(1.0 - max(0.0, dot(normal, vec3(0.0, 0.0, 1.0))), 4.0);
-              baseColor += vec3(0.3, 0.7, 1.0) * rim * progress * 2.0;
+              baseColor += vec3(0.0, 0.9, 0.63) * rim * progress * 2.0;
               
               // Add pulsing effect
               float pulse = sin(time * 2.0) * 0.5 + 0.5;
-              baseColor += vec3(0.3, 0.7, 1.0) * pulse * progress * 0.3;
+              baseColor += vec3(0.0, 0.9, 0.63) * pulse * progress * 0.3;
+              
+              // Add voronoi cells pattern
+              float voronoi = fbm(vPosition * 2.0 + time * 0.05);
+              baseColor = mix(baseColor, colorC, voronoi * progress * 0.3);
               
               // Adjust opacity based on progress
-              float alpha = 0.2 + progress * 0.8;
+              float alpha = 0.1 + progress * 0.9;
+              
+              // Add electric edge effect
+              float edge = pow(1.0 - abs(dot(normal, vec3(0.0, 0.0, 1.0))), 8.0);
+              baseColor += vec3(0.0, 0.9, 0.63) * edge * 2.0 * progress;
               
               gl_FragColor = vec4(baseColor, alpha);
             }
@@ -1104,6 +1354,9 @@
       
       // Initialize the application
       const init = async () => {
+        // Create floating particles
+        createParticles();
+        
         // Try to extract credentials from URL first (highest priority)
         if (!extractCredentialsFromUrl()) {
           // If no URL params, try to detect the logged-in user
