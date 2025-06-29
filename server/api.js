@@ -18,6 +18,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // --------------------------------------------------------------------------- //
+// Detect deployment environment
+// Vercel (and most other serverless platforms) expose the env var VERCEL=1
+// Their filesystem is read-only (except /tmp) – so we skip JSON persistence.
+// --------------------------------------------------------------------------- //
+const IS_SERVERLESS = !!process.env.VERCEL;
+
+// --------------------------------------------------------------------------- //
 // Auth: predefined user accounts (email → password)
 // NOTE: Do NOT store sensitive data in VCS for real projects. These are injected
 //       here only because the spec explicitly asked for hard-coded accounts.
@@ -46,12 +53,13 @@ const DATA_PATH = process.env.DATA_PATH || './data/sessions.json';
 const DATA_DIR = dirname(DATA_PATH);
 
 // Ensure data directory exists
-if (!existsSync(DATA_DIR)) {
+if (!IS_SERVERLESS && !existsSync(DATA_DIR)) {
   mkdirSync(DATA_DIR, { recursive: true });
 }
 
 // Initialize data file if it doesn't exist
 async function initDataFile() {
+  if (IS_SERVERLESS) return; // skip on Vercel
   try {
     if (!existsSync(DATA_PATH)) {
       await fs.writeFile(DATA_PATH, JSON.stringify({ sessions: [] }));
@@ -107,6 +115,8 @@ const openai = new OpenAI({
 
 // Save session data
 async function saveSession(sessionData) {
+  // On Vercel (read-only FS) just resolve true – client keeps its own cache
+  if (IS_SERVERLESS) return true;
   try {
     let data = { sessions: [] };
     
@@ -250,6 +260,12 @@ app.post('/api/ikigai', async (req, res) => {
 // Get session data
 app.get('/api/session/:id', async (req, res) => {
   try {
+    if (IS_SERVERLESS) {
+      return res
+        .status(501)
+        .json({ error: 'Session lookup disabled in serverless deployment' });
+    }
+
     const sessionId = req.params.id;
     
     if (!existsSync(DATA_PATH)) {
