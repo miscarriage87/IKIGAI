@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "ikigai-x-one",
   "builds": [
     {
       "src": "server/api.js",
@@ -11,18 +10,14 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "server/api.js"
+      "source": "/api/(.*)",
+      "destination": "server/api.js"
     },
     {
-      "src": "/(.*\\.(js|css|svg|png|jpg|jpeg|gif|webp|ico)$)",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/index.html"
+      "source": "/(.*)",
+      "destination": "/public/index.html"
     }
   ],
   "env": {
